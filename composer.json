@@ -1,12 +1,12 @@
 {
     "name": "OpenMageModuleFostering/Waterstone_Winvoice",
     "type": "magento-module",
-    "license": "Open-Software-License-(OSL)",
+    "license": "OSL",
     "homepage": "",
-    "description": "Automatically generates and sends Portuguese certified invoices for your magento store clients.",
+    "description": "Portuguese certified invoice provider",
     "authors": [
     {
-        "name": "Waterstone Consulting",
+        "name": "Waterstone",
         "email": "info@waterstone.pt"
     }
 ],
