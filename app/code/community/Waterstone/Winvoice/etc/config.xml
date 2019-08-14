@@ -17,7 +17,8 @@
 <config>
     <modules>
         <Waterstone_Winvoice>
-            <version>1.0.0</version>
+        	<!-- current version 1.0.3 -->
+            <version>1.0.0</version> 
         </Waterstone_Winvoice>
     </modules>
     <global>

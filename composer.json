@@ -1,7 +1,7 @@
 {
     "name": "OpenMageModuleFostering/Waterstone_Winvoice",
     "type": "magento-module",
-    "license": "OSLv3.0",
+    "license": "Open-Software-License-(OSL)",
     "homepage": "",
     "description": "Generates shipping documents registered by Portuguese Tax and Customs Authority (Autoridade Tributária).",
     "authors": [

@@ -70,8 +70,10 @@ class Waterstone_Winvoice_Model_AddInvoice extends Mage_Core_Model_Abstract
         $this->client = new \nusoap_client(Mage::getStoreConfig('winvoice/wconfig/wapi'));
         $this->password = Mage::getStoreConfig('winvoice/wconfig/wpassword');
 
-        Mage::log("Winvoice | Foi criado um cliente: ".print_r($this->client), null, 'winvoice.log', true);
-        Mage::log("Winvoice | Password do cliente: {$this->password}", null, 'winvoice.log', true);
+
+        Mage::log("Winvoice | Foi criado um cliente SOAP.", null, 'winvoice.log', true);
+        Mage::log("Winvoice | Password do cliente SOAP: {$this->password}", null, 'winvoice.log', true);
+
     }
 
     /**
@@ -134,20 +136,23 @@ class Waterstone_Winvoice_Model_AddInvoice extends Mage_Core_Model_Abstract
             'type' => 'S',
             'quantity' => '1',
             'price' => number_format((float)$invoice->getOrder()->getBaseShippingAmount(), 2, '.', ''),
-            'discount' => '0.00',
+            'discount' => number_format((float)$invoice->getOrder()->getBaseShippingDiscountAmount(), 2, '.', ''),
             'tax' => $vat,
             'taxreason' => '',
         );
 
         $Products[] = $Product;
+		
+
+        Mage::log("Winvoice | Id do client a enviar para factura weo: ".$this->getClientNumber($invoice), null, 'winvoice.log', true);
 
         $params = array(
             'client' => $this->getClientNumber($invoice),
             'type' => '1',                     //Tipo de documento (ver tabela Tipos de Documento)
             'date' => date("Y-m-d"),            //Data do documento (ex: 2011-01-01)
             'payment_date' => date("Y-m-d"),    //date (*) Data de vencimento do documento (ex: 2011-01-01)
-            'description' => 'F'.$invoice->getEntityId(),
-            'footer' => 'Numero Interno '.$invoice->getEntityId(),
+            'description' => '',
+            'footer' => 'Encomenda: '.$invoice->getOrder()->getIncrementId(),
             'products' => $Products,
             'password' => $this->password,
         );
@@ -230,7 +235,7 @@ class Waterstone_Winvoice_Model_AddInvoice extends Mage_Core_Model_Abstract
         Mage::log("Winvoice | Os dados do cliente na invoice são:", null, 'winvoice.log', true);
         Mage::log("Winvoice | Nome:".$invoice->getOrder()->getCustomerName(), null, 'winvoice.log', true);
         Mage::log("Winvoice | ID:".$invoice->getOrder()->getCustomerId(), null, 'winvoice.log', true);
-        Mage::log("Winvoice | NIF:".$invoice->getOrder()->getCustomerTaxvat(), null, 'winvoice.log', true);
+        Mage::log("Winvoice | NIF:".$address->getVatId()/*$invoice->getOrder()->getCustomerTaxvat()*/, null, 'winvoice.log', true);
         Mage::log("Winvoice | WSClient do cliente:".$customer->getWsclient(), null, 'winvoice.log', true);
         Mage::log("Winvoice | WSClient da encomenda:".$invoice->getOrder()->getCustomerWsclient(), null, 'winvoice.log', true);
         Mage::log("Winvoice | Morada: ".$address->getStreetFull(), null, 'winvoice.log', true);
@@ -299,7 +304,7 @@ class Waterstone_Winvoice_Model_AddInvoice extends Mage_Core_Model_Abstract
                     $customer->save();
                 } else {
                     Mage::log("Winvoice | Erro ao criar factura.", null, 'winvoice.log', true);
-                    $this->wLog->log("info", "One time costumer processed");
+                    Mage::log("Winvoice | One time costumer processed.", null, 'winvoice.log', true);
                 }
 
                 Mage::log("Winvoice | Foi criado um novo WSClient com o numero ".$result['description1'], null, 'winvoice.log', true);
@@ -323,7 +328,8 @@ class Waterstone_Winvoice_Model_AddInvoice extends Mage_Core_Model_Abstract
     {
         return;
 
-        $this->wLog->Log("info", "AutoInvoice trigger for order".$observer->getEvent()->getOrder());
+        Mage::log("Winvoice | AutoInvoice trigger for order".$observer->getEvent()->getOrder(), null, 'winvoice.log', true);
+
 
         $order = $observer->getEvent()->getShipment()->getOrder();
 
