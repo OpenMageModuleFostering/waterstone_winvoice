@@ -1,10 +1,9 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  * DISCLAIMER
  *
  * Do not edit or add to this file if you wish to upgrade the extension to newer
- * versions in the future. If you need personal customization please contact us
+ * versions in the future. If you need personal customization please  contact us
  * on http://www.waterstone.pt for more information.
  *
  * @category    Waterstone
@@ -12,13 +11,8 @@
  * @copyright   Copyright (c) 2014 Waterstone Consulting, Lda. (http://www.waterstone.pt)
  * @license     http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
--->
 
-<config>
-    <modules>
-        <Waterstone_Winvoice>
-            <active>true</active>
-            <codePool>community</codePool>
-        </Waterstone_Winvoice>
-    </modules>
-</config>
+class Waterstone_Winvoice_Helper_Data extends Mage_Core_Helper_Abstract
+{
+
+}

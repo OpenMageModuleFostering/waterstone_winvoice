@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade the extension to newer
+ * versions in the future. If you need personal customization please  contact us
+ * on http://www.waterstone.pt for more information.
+ *
+ * @category    Waterstone
+ * @package     Waterstone_Winvoice
+ * @copyright   Copyright (c) 2014 Waterstone Consulting, Lda. (http://www.waterstone.pt)
+ * @license     http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+-->
+
+<config>
+	<tabs>
+		<waterstone translate="label" module="winvoice">
+			<label>Waterstone Extensions</label>
+			<sort_order>100</sort_order>
+		</waterstone>
+	</tabs>
+	<sections>
+		<winvoice translate="label" module="winvoice">
+			<label>Winvoice</label>
+			<tab>waterstone</tab>
+			<frontend_type>text</frontend_type>
+			<sort_order>1000</sort_order>
+			<show_in_default>1</show_in_default>
+			<show_in_website>1</show_in_website>
+			<show_in_store>1</show_in_store>
+			<groups>
+				<wconfig translate="label">
+					<label>Configuração</label>
+					<frontend_type>text</frontend_type>
+					<sort_order>100</sort_order>
+					<show_in_default>1</show_in_default>
+					<show_in_website>1</show_in_website>
+					<show_in_store>1</show_in_store>
+					<fields>
+						<!-- New fields go here -->
+						<wapi translate="label comment">
+							<label>API weoInvoice</label>
+							<comment>API fornecida pelo weoInvoice</comment>
+							<frontend_type>text</frontend_type>
+							<sort_order>10</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+							<validate>validate-url</validate>
+						</wapi>
+						<wpassword translate="label comment">
+							<label>Password weoInvoice</label>
+							<comment>Password da sua conta weoInvoice</comment>
+							<frontend_type>password</frontend_type>
+							<sort_order>20</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</wpassword>
+						<wshiptax translate="label comment">
+							<label>Imposto a aplicar ao envio</label>
+							<comment>Introduza a taxa de IVA a aplicar aos envios</comment>
+							<frontend_type>text</frontend_type>
+							<sort_order>30</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+							<validate>validate-digits</validate>
+						</wshiptax>
+					</fields>
+				</wconfig>
+			</groups>
+		</winvoice>
+	</sections>
+</config>

@@ -1,12 +1,12 @@
 {
     "name": "OpenMageModuleFostering/Waterstone_Winvoice",
     "type": "magento-module",
-    "license": "OSL",
+    "license": "OSLv3.0",
     "homepage": "",
-    "description": "Portuguese certified invoice provider",
+    "description": "Generates shipping documents registered by Portuguese Tax and Customs Authority (Autoridade Tributária).",
     "authors": [
     {
-        "name": "Waterstone",
+        "name": "Waterstone Consulting",
         "email": "info@waterstone.pt"
     }
 ],
