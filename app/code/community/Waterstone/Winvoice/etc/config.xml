@@ -21,6 +21,17 @@
             <version>1.0.0</version> 
         </Waterstone_Winvoice>
     </modules>
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <Waterstone_Winvoice before="Mage_Adminhtml">Waterstone_Winvoice</Waterstone_Winvoice>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
     <global>
         <models>
             <winvoice>
@@ -81,6 +92,24 @@
                     </Waterstone_Winvoice_order_pay>
                 </observers>
 			</sales_order_shipment_save_after>
+            <sales_order_creditmemo_save_before>
+                <observers>
+                    <winvoice_hook_creditmemo_save_before>
+                        <type>singleton</type>
+                        <class>Waterstone_Winvoice_Model_AddInvoice</class>
+                        <method>addCreditMemo</method>
+                    </winvoice_hook_creditmemo_save_before>
+                </observers>
+            </sales_order_creditmemo_save_before>
+            <adminhtml_widget_container_html_before>                
+                <observers>                    
+                    <winvoice_hook_widget_container>                        
+                        <type>singleton</type>                        
+                        <class>Waterstone_Winvoice_Model_Observer</class>                        
+                        <method>adminhtmlWidgetContainerHtmlBefore</method>                    
+                    </winvoice_hook_widget_container>                
+                </observers>            
+            </adminhtml_widget_container_html_before>
 		</events>
     </global>
 </config>

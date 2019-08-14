@@ -113,7 +113,7 @@ class Waterstone_Winvoice_Model_AddInvoice extends Mage_Core_Model_Abstract
                 'item' => $item->getName(),                                                         //string (*) Nome do produto/serviço
                 'type' => 'P',                                                                      //char (*) Tipo (P ou S) consoante seja produto ou serviço
                 'quantity' => number_format((float)$item->getQty(), 0, '.', ''),                    //double (*) Quantidade (ex: 2)
-                'price' => number_format((float)$item->getBase_price(), 2, '.', ''),                //double (*) Preço (ex: 99.99)
+                'price' => round($item->getPriceInclTax()/( 1 + $item->getOrderItem()->getTaxPercent()/100), 6),                 //double (*) Preço (ex: 99.99)
                 'discount' => $item->getDiscountAmount(),                                                               //double Desconto (ex: 19.99)
                 'tax' => number_format((float)$item->getOrderItem()->getTaxPercent(), 0, '.', ''),  //int (*)Taxa de IVA (ex: 23)
                 'taxreason' => '',                                                                  // string Motivo de isenção de Taxa, caso aplicável (ver tabela Motivos de isenção de IVA)
@@ -135,7 +135,7 @@ class Waterstone_Winvoice_Model_AddInvoice extends Mage_Core_Model_Abstract
             'item' => $invoice->getOrder()->getShippingDescription(),
             'type' => 'S',
             'quantity' => '1',
-            'price' => number_format((float)$invoice->getOrder()->getBaseShippingAmount(), 2, '.', ''),
+            'price' => round($invoice->getOrder()->getBaseShippingInclTax()/( 1 + $vat/100), 6),
             'discount' => number_format((float)$invoice->getOrder()->getBaseShippingDiscountAmount(), 2, '.', ''),
             'tax' => $vat,
             'taxreason' => '',
@@ -182,13 +182,20 @@ class Waterstone_Winvoice_Model_AddInvoice extends Mage_Core_Model_Abstract
                         Mage::throwException(Mage::helper('adminhtml')->__('Erro ao criar factura.'));
                     }
                 }
+				
+                $prefix = Mage::getConfig()->getTablePrefix();
+                $resource = Mage::getSingleton('core/resource')->getConnection('core_read');
+                $resource->addColumn($prefix.'sales_flat_invoice', 'wsinvoiceurl', 'Varchar(300) NULL');
+                $resource->addColumn($prefix.'sales_flat_invoice', 'wsinvoiceid', 'INT NULL');
 
-                $invoice->setWsinvoiceurl($result['description2']);
+                $invoiceId = $result['description1'];
+				$invoiceUrl = $result['description2'];
+                $invoice->setWsinvoiceurl($invoiceUrl);
+                $invoice->setWsinvoiceid($invoiceId);
             }
         }
 
-        $invoice->sendEmail(true, "Factura enviada ao cliente");
-        Mage::log("Winvoice | Factura enviada ao cliente", null, 'winvoice.log', true);
+      
     }
 
     /**
@@ -349,6 +356,87 @@ class Waterstone_Winvoice_Model_AddInvoice extends Mage_Core_Model_Abstract
 
         $invoice->sendEmail(true, "Factura enviada ao cliente");
     }
+
+    /**
+     * Add credit memo method.
+     * - Gets information for the credit memo and sends it outwards.
+     *
+     * @since 1.0.4
+     *
+     * @param Varien_Event_Observer $observer
+     * @return void
+     */
+    public function addCreditMemo($observer)
+    {
+        $creditmemo = $observer->getEvent()->getCreditmemo();
+
+        $vat = Mage::getStoreConfig('winvoice/wconfig/wshiptax');
+
+        $prefix = Mage::getConfig()->getTablePrefix();
+        $resource = Mage::getSingleton('core/resource')->getConnection('core_read');
+        $resource->addColumn($prefix.'sales_flat_creditmemo', 'wscreditmemourl', 'Varchar(300) NULL');
+
+        $orderId = $creditmemo->getOrder()->getId();
+        $table = $prefix.'sales_flat_invoice';
+
+        $query = "SELECT wsinvoiceid FROM $table WHERE order_id = $orderId";
+
+        $invoice_id = $resource->fetchOne($query);
+        $items = $creditmemo->getAllItems();
+
+        foreach ($items as $item) {
+            if ($item->getBase_price() == 0) {
+                continue;
+            }
+
+            $Product = array (
+                'item' => $item->getName(),                                                         //string (*) Nome do produto/serviço
+                'type' => 'P',                                                                      //char (*) Tipo (P ou S) consoante seja produto ou serviço
+                'quantity' => number_format((float)$item->getQty(), 0, '.', ''),                    //double (*) Quantidade (ex: 2)
+                'price' => round($item->getPriceInclTax()/( 1 + $item->getOrderItem()->getTaxPercent()/100), 6),                 //double (*) Preço (ex: 99.99)
+                'discount' => $item->getDiscountAmount(),                                                               //double Desconto (ex: 19.99)
+                'tax' => number_format((float)$item->getOrderItem()->getTaxPercent(), 0, '.', ''),  //int (*)Taxa de IVA (ex: 23)
+                'taxreason' => '',                                                                  // string Motivo de isenção de Taxa, caso aplicável (ver tabela Motivos de isenção de IVA)
+            );
+
+            $Products[] = $Product;
+        }
+
+
+        $Product = array (
+            'item' => $creditmemo->getOrder()->getShippingDescription(),
+            'type' => 'S',
+            'quantity' => '1',
+            'price' => round($creditmemo->getOrder()->getBaseShippingInclTax()/( 1 + $vat/100), 6),
+            'discount' => number_format((float)$creditmemo->getOrder()->getBaseShippingDiscountAmount(), 2, '.', ''),
+            'tax' => $vat,
+            'taxreason' => '',
+        );
+
+        $Products[] = $Product;
+
+
+        $params = array(
+            'client' => $this->getClientNumber($creditmemo),
+            'type' => '6',                     //Tipo de documento (ver tabela Tipos de Documento)
+            'date' => date("Y-m-d"),            //Data do documento (ex: 2011-01-01)
+            'payment_date' => date("Y-m-d"),    //date (*) Data de vencimento do documento (ex: 2011-01-01)
+            'description' => '',
+            'footer' => utf8_decode('Nota de crédito: '.$creditmemo->getIncrementId()),
+            'products' => $Products,
+            'password' => $this->password,
+            'custom' => $invoice_id,
+        );
+
+        $result = $this->client->call("AddDocument", $params);
+        $url = $result['description2'];
+        $creditmemo->setWscreditmemourl($url);
+
+    }
+
+
+
+
 
     /**
      * Is valid nif method.
